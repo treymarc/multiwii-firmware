@@ -36,11 +36,11 @@ void computeIMU () {
     }
   #else
     uint16_t timeInterleave = 0;
-    #if ACC
+    #if ACC && ! HIL
       ACC_getADC();
       getEstimatedAttitude();
     #endif
-    #if GYRO
+    #if GYRO && !HIL
       Gyro_getADC();
     #endif
     for (axis = 0; axis < 3; axis++)
@@ -50,7 +50,7 @@ void computeIMU () {
     uint8_t t=0;
     while((int16_t)(micros()-timeInterleave)<650) t=1; //empirical, interleaving delay between 2 consecutive reads
     if (!t) annex650_overrun_count++;
-    #if GYRO
+    #if GYRO && !HIL
       Gyro_getADC();
     #endif
     for (axis = 0; axis < 3; axis++) {
@@ -211,6 +211,7 @@ void rotateV32( t_int32_t_vector *v,int16_t* delta) {
 static int16_t accZ=0;
 
 void getEstimatedAttitude(){
+#if !HIL
   uint8_t axis;
   int32_t accMag = 0;
   float scale;
@@ -293,6 +294,7 @@ void getEstimatedAttitude(){
     accZoffset += accZ;
   }  
   accZ -= accZoffset>>3;
+  #endif
 }
 
 #define UPDATE_INTERVAL 25000    // 40hz update rate (20hz LPF on acc)

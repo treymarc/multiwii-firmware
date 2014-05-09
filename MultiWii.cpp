@@ -701,7 +701,7 @@ void setup() {
 
 void go_arm() {
   if(calibratingG == 0
-  #if defined(ONLYARMWHENFLAT)
+  #if defined(ONLYARMWHENFLAT) && !HIL
     && f.ACC_CALIBRATED 
   #endif
   #if defined(FAILSAFE)
@@ -1097,16 +1097,17 @@ void loop () {
     #endif
  
   } else { // not in rc loop
+  f.ARMED = 1;
     static uint8_t taskOrder=0; // never call all functions in the same loop, to avoid high delay spikes
     switch (taskOrder) {
       case 0:
         taskOrder++;
-        #if MAG
+        #if MAG && !HIL
           if (Mag_getADC() != 0) break; // 320 µs
         #endif
       case 1:
         taskOrder++;
-        #if BARO
+        #if BARO && !HIL
           if (Baro_update() != 0) break; // for MS baro: I2C set and get: 220 us  -  presure and temperature computation 160 us
         #endif
       case 2:

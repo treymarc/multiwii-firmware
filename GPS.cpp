@@ -245,6 +245,8 @@ static int16_t nav_takeoff_bearing;
  #endif
 
   void GPS_SerialInit(void) {
+    #if !HIL
+    
     SerialOpen(GPS_SERIAL,GPS_BAUD);
     delay(1000);
     #if defined(UBLOX)
@@ -308,6 +310,8 @@ static int16_t nav_takeoff_bearing;
         SerialGpsPrint(MTK_SET_BINARY);
       #endif
     #endif  //elif init_mtk_gps
+    
+    #endif
   }
 #endif //gps_serial
 
@@ -380,8 +384,8 @@ uint8_t GPS_NewData(void) {
     }
   #endif
 
-  #if defined(GPS_SERIAL) || defined(GPS_FROM_OSD)
-    #if defined(GPS_SERIAL)
+  #if (defined(GPS_SERIAL) || defined(GPS_FROM_OSD)) && !HIL
+    #if defined(GPS_SERIAL) 
       uint8_t c = SerialAvailable(GPS_SERIAL);
       if (c==0) return 0;
       while (c--) {

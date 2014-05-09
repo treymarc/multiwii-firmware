@@ -1077,7 +1077,7 @@ void Gyro_getADC () {
 // ************************************************************************************************************
 // I2C Compass common function
 // ************************************************************************************************************
-#if MAG
+#if MAG && !HIL
 static float   magGain[3] = {1.0,1.0,1.0};  // gain for each axis, populated at sensor init
 static uint8_t magInit = 0;
 
@@ -1769,6 +1769,7 @@ void initSensors() {
   delay(200);
   POWERPIN_ON;
   delay(100);
+  #if !HIL
   i2c_init();
   delay(100);
   if (GYRO) Gyro_init();
@@ -1777,4 +1778,5 @@ void initSensors() {
   if (ACC) ACC_init();
   if (SONAR) Sonar_init();
   f.I2C_INIT_DONE = 1;
+  #endif
 }

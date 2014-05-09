@@ -20,6 +20,8 @@
 
 #define MSP_PRIVATE              1     //in+out message      to be used for a generic framework : MSP + function code (LIST/GET/SET) + data. no code yet
 
+#define MSP_SET_ATTITUDE         10    //in message roll , pitch , magHead ( trueHead )
+
 #define MSP_IDENT                100   //out message         multitype + multiwii version + protocol version + capability variable
 #define MSP_STATUS               101   //out message         cycletime & errors_count & sensor present & box activation & current setting number
 #define MSP_RAW_IMU              102   //out message         9 DOF
@@ -183,8 +185,11 @@ void serialCom() {
     #if (defined(SPEKTRUM) || defined(SBUS)) && (UART_NUMBER > 1)
       #define RX_COND && (RX_SERIAL_PORT != CURRENTPORT)
     #endif
+    #if HIL
+      CURRENTPORT = 0;
+      #endif
     uint8_t cc = SerialAvailable(CURRENTPORT);
-    while (cc-- GPS_COND RX_COND) {
+    while (cc--) { // fix me
       uint8_t bytesTXBuff = SerialUsedTXBuff(CURRENTPORT); // indicates the number of occupied bytes in TX buffer
       if (bytesTXBuff > TX_BUFFER_SIZE - 50 ) return; // ensure there is enough free TX buffer to go further (50 bytes margin)
       c = SerialRead(CURRENTPORT);
@@ -245,6 +250,13 @@ void evaluateCommand() {
   uint32_t tmp=0; 
 
   switch(cmdMSP[CURRENTPORT]) {
+   case MSP_SET_ATTITUDE:
+       for (int i = 0; i < 2; i++)
+           att.angle[i] = read16();
+       att.heading = read16();
+       alt.EstAlt = read32();
+       headSerialReply(0);
+       break;
    case MSP_PRIVATE:
      headSerialError(0); // we don't have any custom msp currently, so tell the gui we do not use that
      break;
